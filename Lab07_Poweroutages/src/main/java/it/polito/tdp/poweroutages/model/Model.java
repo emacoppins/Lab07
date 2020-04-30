@@ -16,7 +16,7 @@ public class Model {
 	public Model(int id) {
 		podao = new PowerOutageDAO();
 		this.listapwrpernerc = podao.getPowerOutagesByNerc(id);
-		this.maxpeople=0;
+		this.maxpeople = 0;
 	}
 
 	public List<Nerc> getNercList() {
@@ -25,7 +25,6 @@ public class Model {
 
 	public List<Poweroutage> worstCase(int years, int hours) {
 
-		
 		recursion(new ArrayList<Poweroutage>(), 0, years, hours);
 
 		return worstcase;
@@ -33,22 +32,25 @@ public class Model {
 	}
 
 	private void recursion (List<Poweroutage>parziale, int L, int years, int hours) {
-		//caso terminale
 		
+	
+		
+		
+		//aggiungo soluzione livello precedente se peggiore!!!!!!!!
+		
+		if(this.worstCustomersAffected(parziale))
+			worstcase=new ArrayList<>(parziale);
+		
+		
+		//caso terminale
 		if(L==this.listapwrpernerc.size())
 			return;
-		
-		//controlli
-		
-		if(this.worstCustomersAffected(parziale)) {
-			worstcase=new ArrayList<>(parziale);
-		}
 		
 		
 		//casi intermedi
 		parziale.add(this.listapwrpernerc.get(L));
 		
-		if(validitaAnni(parziale, years)&& this.validitaOre(parziale, hours))
+	if(validitaOre(parziale, hours) && validitaAnni(parziale, years))
 		recursion(parziale,L+1, years, hours);
 		
 		parziale.remove(parziale.size()-1);
@@ -68,49 +70,74 @@ public class Model {
 			if (count > years) {
 				return false;
 			}
-			return true;
+
 		}
 
-		return false;
-
+		return true;
 	}
 
-	private boolean validitaOre(List<Poweroutage>lista, int hours) {
-		
-		int count=0;
-		
-		if(lista.size()!=0) {
-			
-			
-			for(Poweroutage p: lista) {
+	private boolean validitaOre(List<Poweroutage> lista, int hours) {
+
+		int count = 0;
+
+		if (lista.size() != 0) {
+
+			for (Poweroutage p : lista) {
 				count += Math.abs(Duration.between(p.getDateEventBegan(), p.getDateEventFinished()).toHours());
+			}
+
+			if (count > hours) {
+				return false;
+
+			}
+
 		}
-			
-			
-					if(count>hours) {
-						return false;
-						
-					}
-					
-					return true;
-			
-		}
-		
-		return false;
-		
+
+		return true;
+
 	}
-	
-	
+
 	public boolean worstCustomersAffected(List<Poweroutage> lista) {
-		int people=0;
-		for(Poweroutage p: lista) {
-			people+=p.getCustomersAffected();
+		int people = 0;
+		for (Poweroutage p : lista) {
+			people += p.getCustomersAffected();
 		}
-		if(people>this.maxpeople) {
-			maxpeople=people;
+		if (people > this.maxpeople) {
+			maxpeople = people;
 			return true;
 		}
 		return false;
 	}
 
+	
+private void cerca1(List<Poweroutage> parziale, int livello, int years, int hours) {
+		
+		//Controllo se il powerOutages che aggiungo a parziale non abbia un numero di ore tale che parziale superi il limite 
+		//inserito dall'utente
+		if(!this.validitaOre(parziale, hours)) {
+			return;
+			
+		}
+		
+		if(this.worstCustomersAffected(parziale)) {
+			
+			
+			this.worstcase=new ArrayList<>(parziale);
+			
+		}
+		
+		for(Poweroutage l: this.listapwrpernerc) {
+			if(!parziale.contains(l)) {
+				parziale.add(l);
+				//Controllo se il powerOutages che aggiungo a parziale non abbia un intervallo annuale superiore a quello limite
+				if(!this.validitaAnni(parziale, years)) {
+					return;
+				}
+				cerca1(parziale, livello+1, years, hours);
+				parziale.remove(parziale.size()-1);
+			}
+		}
+	}
+	
+	
 }
