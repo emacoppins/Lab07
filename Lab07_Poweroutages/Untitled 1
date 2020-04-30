@@ -1,0 +1,18 @@
+Combinazione di eventi blackut che massimizzi i clienti coinvolti
+seleziono NERC
+x anni di copertura
+Y ore max di copertura
+Ore di blackout(date_event_finished-date_event_Began)
+
+
+
+VINCOLI
+
+anni<=X
+ore <=Y
+
+calcolo combinazione poweroutage:
+parto da una lista di poweroutages totali e
+
+
+
